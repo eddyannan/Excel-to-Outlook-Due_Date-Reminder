@@ -1,0 +1,81 @@
+Sub Macro1()
+
+' Macro1 Macro
+' go into folder and open a file
+'
+' Keyboard Shortcut: Ctrl+m
+'
+        
+    Dim xlApp As Object
+    Set xlApp = CreateObject("Excel.Application")
+  
+  Dim lRow As Integer
+  Dim i As Integer
+  Dim toDate As Date
+  Dim toList As String
+  Dim eSubject As String
+  Dim eBody As String
+  Dim Obj_Event As Outlook.AppointmentItem
+  
+    With xlApp
+        .Visible = True
+        .EnableEvents = False
+        xlApp.Workbooks.Open FileName:="R:\TechPlanner\Edwin Annan\Convincer Statutory Certificates Master List 18.04.2018.xlsx"	'*********** path/location of excel file
+        
+    End With
+        
+  With Application
+    xlApp.ScreenUpdating = True
+    xlApp.EnableEvents = False
+    xlApp.DisplayAlerts = False
+End With
+Sheets(1).Select
+lRow = Cells(Rows.Count, 12).End(xlUp).Row
+For i = 7 To lRow
+toDate = Replace(Cells(i, 12), ".", "/")
+  If Left(Cells(i, 14), 4) <> "Mail" And toDate - Date <= 90 Then
+   Set Obj_Event = Application.CreateItem(olAppointmentItem)
+   eSubject = "Project " & Cells(i, 2) & " is due on " & Cells(i, 12)
+   With Obj_Event
+        .Subject = eSubject
+        .Location = "Major Cert folder"
+        .AllDayEvent = True
+        .Start = Format("05/10/2018 12:00 AM")
+        .End = Format("05/11/2018 12:00 AM")
+        .Save
+        .Display
+    End With
+   
+     Set OutApp = CreateObject("Outlook.Application")
+     Set OutMail = OutApp.CreateItem(0)
+        toList = "ena036@maerskdrilling.com"    'gets the recipient from col D
+        eSubject = "Project " & Cells(i, 2) & " is due on " & Cells(i, 12) & "For IFS Obj ID" & Cells(i, 13)
+        eBody = "Dear Michael/Adam" & vbCrLf & vbCrLf & "Please get Ready to update certificate ."
+        
+        On Error Resume Next
+        With OutMail
+        .To = toList
+        .CC = ""
+        .BCC = ""
+        .Subject = eSubject
+        .Body = eBody
+        .BodyFormat = 1
+        .Display   ' ********* Creates draft emails. Comment this out when you are ready
+        .Send     '********** UN-comment this when you are ready to go live
+        End With
+        
+        
+ 
+    On Error GoTo 0
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+ Cells(i, 14) = "Mail Sent " & Date + Time 'Marks the row as "email sent in Column A"
+    End If
+Next i
+ActiveWorkbook.Save
+With Application
+    xlApp.ScreenUpdating = True
+    xlApp.EnableEvents = True
+    xlApp.DisplayAlerts = True
+End With
+End Sub
